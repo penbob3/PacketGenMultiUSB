@@ -4,31 +4,28 @@
 #Move Y + No Multi = 164
 #Move Y - No Multi = 166
 
-lastxy = []
-lasttime = 0
-
-import mouse
 import time
+import atexit
 import threading
-from queue import Queue
+import mouse
+import keyboard
+import serial
+ser = serial.Serial('COM4', 115200, timeout=1)
 
-#mouseq = Queue()
-#kbdq = Queue()
 
-def reportMouseMoves(mouseq: Queue):
-    while True:
-        xy = mouse.get_position()
-        mouse.move(1024, 576)
-        #print(xy)
-        dxdy = [xy[0] - 1024, xy[1] - 576]
-        if ((dxdy[0] == 0 and dxdy[1] == 0) == False):
-            mouseq.put(dxdy)
-        #print(dxdy)
-        time.sleep(0.005)
+#while True:
+#    h = bytes([168])
+#    char = ("b").encode("utf8")
+#    msg = h + char
+#    ser.write(h)
+#    ser.write(char)
+#    print("Send b")
+#    print(h)
+#    print(char)
+#    time.sleep(5)
 
-def reportMouseClicks(mouseq: Queue):
-    while True:
-        mouseq.put()
+ctrl = False
+alt = False
 
 lastcapturedevent = int(time.time()) * 1000
 
@@ -36,43 +33,77 @@ def reportMouseEvents(event):
     global lastcapturedevent
     global counter
     newtime = int(event.time * 1000)
-    if (newtime - lastcapturedevent > 5):
+    #if (newtime - lastcapturedevent > 5):
+    if (True):
         lastcapturedevent = newtime
         #print(event)
         dxdy = [event.x - 1280, event.y - 720]
         print(dxdy)
         mouse.move(1024, 576)
         counter += 1
-        #lastxy = [event.x, event.y]
+        if (dxdy[0] > 0):
+            pack = bytes([160, abs(dxdy[0])])
+            ser.write(pack)
+        elif (dxdy[0] < 0):
+            pack = bytes([162, abs(dxdy[0])])
+            ser.write(pack)
+
+        if (dxdy[1] > 0):
+            pack = bytes([164, abs(dxdy[1])])
+            ser.write(pack)
+        elif (dxdy[1] < 0):
+            pack = bytes([166, abs(dxdy[1])])
+            ser.write(pack)
+
+
+def reportKeyEvents(event):
+    if (event.name == "ctrl"):
+        if (event.event_type == "down"):
+            ctrl = True
+        else:
+            ctrl = False
+    elif (event.name == "alt"):
+        if (event.event_type == "down"):
+            alt = True
+        else:
+            alt = False
+    #COMBINE THESE INTO A DICTIONARY THIS IS UGLY TO LOOK AT AND MAINTAIN
+    elif (event.name == "space" and event.event_type == "up"):
+        h = bytes([168])
+        char = (" ").encode("utf8")
+        ser.write(h)
+        ser.write(char)
+    elif (event.name == "enter" and event.event_type == "up"):
+        h = bytes([182])
+        char = (" ").encode("utf8")
+        ser.write(h)
+        ser.write(char)
+    elif (event.name == "backspace" and event.event_type == "up"):
+        h = bytes([184])
+        char = (" ").encode("utf8")
+        ser.write(h)
+        ser.write(char)
+    elif (event.name == "tab" and event.event_type == "up"):
+        h = bytes([186])
+        char = (" ").encode("utf8")
+        ser.write(h)
+        ser.write(char)
+    elif (len(event.name) == 1 and event.event_type == "up"):
+        print(event.event_type)
+        print(event.name)
+        h = bytes([168])
+        char = (event.name).encode("utf8")
+        ser.write(h)
+        ser.write(char)
+    else:
+        print("Overlength code:" + event.name)
     
         
 counter = 0
 starttime = time.time()
 
-listen = mouse.hook(reportMouseEvents)
-
-#def reportKBDClicks()
-
-"""
-mouseCapture = threading.Thread(target=reportMouseMoves, args=[mouseq], daemon=True)
-mouseCapture.start()
-
-clickCapture = threading.Thread(target=reportMouseClicks, args=[mouseq], daemon=True)
-clickCapture.start()
-
-while True:
-    size = mouseq.qsize()
-    if (size >= 1):
-        if (size > 3):
-            with mouseq.mutex:
-                mouseq.queue.clear()
-                print("Mouse move queue is overloaded! Try turning down the polling frequency!")
-        #print(mouseq.qsize())
-        mousemdata = mouseq.get()
-        print(mousemdata)
-"""
-
-import atexit
+#listenmouse = mouse.hook(reportMouseEvents)
+listenkey = keyboard.hook(reportKeyEvents)
 
 def exit_handler():
     print("Total time taken: " + str(time.time() - starttime))
@@ -81,5 +112,5 @@ def exit_handler():
 atexit.register(exit_handler)
 
 while True:
-    print("What")
-    time.sleep(0.1)
+    print("Listening...")
+    time.sleep(20)
