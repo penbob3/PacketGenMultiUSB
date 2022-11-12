@@ -10,7 +10,7 @@ import threading
 import mouse
 import keyboard
 import serial
-ser = serial.Serial('COM4', 115200, timeout=1)
+ser = serial.Serial('COM6', 115200, timeout=1)
 
 
 #while True:
@@ -32,27 +32,58 @@ lastcapturedevent = int(time.time()) * 1000
 def reportMouseEvents(event):
     global lastcapturedevent
     global counter
-    newtime = int(event.time * 1000)
-    #if (newtime - lastcapturedevent > 5):
-    if (True):
-        lastcapturedevent = newtime
-        #print(event)
-        dxdy = [event.x - 1280, event.y - 720]
-        print(dxdy)
-        mouse.move(1024, 576)
-        counter += 1
-        if (dxdy[0] > 0):
-            pack = bytes([160, abs(dxdy[0])])
-            ser.write(pack)
-        elif (dxdy[0] < 0):
-            pack = bytes([162, abs(dxdy[0])])
-            ser.write(pack)
+    if (isinstance(event, mouse.MoveEvent)):
+        newtime = int(event.time * 1000)
+        if (newtime - lastcapturedevent > 20):
+        #if (True):
+            lastcapturedevent = newtime
+            #print(event)
+            dxdy = [event.x - 1280, event.y - 720]
+            print(dxdy)
+            mouse.move(1024, 576)
+            counter += 1
+            if (dxdy[0] > 0):
+                if (abs(dxdy[0]) <= 255):
+                    pack = bytes([160, abs(dxdy[0])])
+                else:
+                    pack = bytes([160, 255])
+                ser.write(pack)
+            elif (dxdy[0] < 0):
+                if (abs(dxdy[0]) <= 255):
+                    pack = bytes([162, abs(dxdy[0])])
+                else:
+                    pack = bytes([162, 255])
+                ser.write(pack)
 
-        if (dxdy[1] > 0):
-            pack = bytes([164, abs(dxdy[1])])
+            if (dxdy[1] > 0):
+                if (abs(dxdy[1]) <= 255):
+                    pack = bytes([164, abs(dxdy[1])])
+                else:
+                    pack = bytes([164, 255])
+                ser.write(pack)
+            elif (dxdy[1] < 0):
+                if (abs(dxdy[1]) <= 255):
+                    pack = bytes([166, abs(dxdy[1])])
+                else:
+                    pack = bytes([166, 255])
+                ser.write(pack)
+    elif (isinstance(event, mouse.ButtonEvent)):
+        print(event)
+        if (event.event_type == "down"):
+            if (event.button == "left"):
+                pack = bytes([188, 0])
+            elif (event.button == "right"):
+                pack = bytes([188, 1])
+            else:
+                pack = bytes([188, 2])
             ser.write(pack)
-        elif (dxdy[1] < 0):
-            pack = bytes([166, abs(dxdy[1])])
+        elif (event.event_type == "up"):
+            if (event.button == "left"):
+                pack = bytes([190, 0])
+            elif (event.button == "right"):
+                pack = bytes([190, 1])
+            else:
+                pack = bytes([190, 2])
             ser.write(pack)
 
 
@@ -102,7 +133,7 @@ def reportKeyEvents(event):
 counter = 0
 starttime = time.time()
 
-#listenmouse = mouse.hook(reportMouseEvents)
+listenmouse = mouse.hook(reportMouseEvents)
 listenkey = keyboard.hook(reportKeyEvents)
 
 def exit_handler():
@@ -110,6 +141,9 @@ def exit_handler():
     print("Total event calls: " + str(counter))
 
 atexit.register(exit_handler)
+
+pack = bytes([120, 255])
+ser.write(pack)
 
 while True:
     print("Listening...")
