@@ -36,6 +36,7 @@ def reportMouseEvents(event):
         newtime = int(event.time * 1000)
         if (newtime - lastcapturedevent > 20):
         #if (True):
+            counter+= 1
             lastcapturedevent = newtime
             #print(event)
             dxdy = [event.x - 1280, event.y - 720]
