@@ -31,6 +31,9 @@ ctrl = False
 alt = False
 shift = False
 
+screenwidth = int(os.getenv('SCREEN_WIDTH'))
+screenheight = int(os.getenv('SCREEN_HEIGHT'))
+
 lastcapturedevent = int(time.time()) * 1000
 
 def reportMouseEvents(event):
@@ -42,9 +45,9 @@ def reportMouseEvents(event):
         #if (True):
             lastcapturedevent = newtime
             print(event)
-            dxdy = [event.x - os.getenv('SCREEN_WIDTH'), event.y - os.getenv('SCREEN_HEIGHT')]
+            dxdy = [event.x - screenwidth, event.y - screenheight]
             print(dxdy)
-            mouse.move(os.getenv('SCREEN_WIDTH'), os.getenv('SCREEN_HEIGHT'))
+            mouse.move(screenwidth, screenheight)
             counter += 1
             if (dxdy[0] > 0):
                 if (abs(dxdy[0]) <= 255):
