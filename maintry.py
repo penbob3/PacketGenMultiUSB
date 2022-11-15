@@ -91,14 +91,22 @@ def reportMouseEvents(event):
 def reportKeyEvents(event):
     if (event.name == "ctrl"):
         if (event.event_type == "down"):
-            ctrl = True
+            pack = bytes([201, 0])
         else:
-            ctrl = False
+            pack = bytes([200, 0])
+        ser.write(pack)
     elif (event.name == "alt"):
         if (event.event_type == "down"):
-            alt = True
+            pack = bytes([201, 1])
         else:
-            alt = False
+            pack = bytes([200, 1])
+        ser.write(pack)
+    elif (event.name == "shift"):
+        if (event.event_type == "down"):
+            pack = bytes([201, 2])
+        else:
+            pack = bytes([200, 2])
+        ser.write(pack)
     #COMBINE THESE INTO A DICTIONARY THIS IS UGLY TO LOOK AT AND MAINTAIN
     elif (event.name == "space" and event.event_type == "up"):
         h = bytes([168])
@@ -120,6 +128,9 @@ def reportKeyEvents(event):
         char = (" ").encode("utf8")
         ser.write(h)
         ser.write(char)
+    elif (event.name == "insert" and event.event_type == "up"):
+        pack = bytes([176, 0])
+        ser.write(pack)
     elif (len(event.name) == 1 and event.event_type == "up"):
         print(event.event_type)
         print(event.name)
