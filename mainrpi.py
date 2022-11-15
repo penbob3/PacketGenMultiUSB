@@ -10,8 +10,11 @@ import threading
 import mouse
 import keyboard
 import serial
-ser = serial.Serial('/dev/ttyAMA0', 115200, timeout=1)
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
+ser = serial.Serial(os.getenv('SERIAL_PORT'), 115200, timeout=1)
 
 #while True:
 #    h = bytes([168])
@@ -39,9 +42,9 @@ def reportMouseEvents(event):
         #if (True):
             lastcapturedevent = newtime
             print(event)
-            dxdy = [event.x - int(1024/2), event.y - int(600/2)]
+            dxdy = [event.x - os.getenv('SCREEN_WIDTH'), event.y - os.getenv('SCREEN_HEIGHT')]
             print(dxdy)
-            mouse.move(int(1024/2), int(600/2))
+            mouse.move(os.getenv('SCREEN_WIDTH'), os.getenv('SCREEN_HEIGHT'))
             counter += 1
             if (dxdy[0] > 0):
                 if (abs(dxdy[0]) <= 255):

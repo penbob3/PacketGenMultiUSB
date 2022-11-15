@@ -35,7 +35,7 @@ def reportMouseEvents(event):
     if (isinstance(event, mouse.MoveEvent)):
         newtime = int(event.time * 1000)
         if (newtime - lastcapturedevent > 20):
-        #if (True):
+        #if (True): //The same as setting above value to 1
             counter+= 1
             lastcapturedevent = newtime
             #print(event)
