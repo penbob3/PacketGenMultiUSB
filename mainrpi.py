@@ -92,7 +92,13 @@ def reportMouseEvents(event):
             else:
                 pack = bytes([190, 2])
             ser.write(pack)
-
+    elif (isinstance(event, mouse.WheelEvent)):
+        print(event)
+        if (float(event.delta) > 0):
+            pack = bytes([170, 1])
+        else:
+            pack = bytes([172, 1])
+        ser.write(pack)
 
 def reportKeyEvents(event):
     if (event.name == "ctrl"):
